@@ -47,6 +47,7 @@ class PixelInput extends Phaser.GameObjects.Container {
 	set text(value) {
 		// not a user edit, so not saving to history
 		this._insertText(value, 0, Infinity, false);
+		this._refresh();
 	}
 
 	get selectionStart() {
@@ -150,9 +151,7 @@ class PixelInput extends Phaser.GameObjects.Container {
 			return;
 		}
 		this._handleKeystrokes(event) || this._handleKeys(event);
-		this._updateTextPosition();
-		this._updateCursorPositions();
-		this._updateSelectionTint();
+		this._refresh();
 	}
 
 	_handleKeystrokes(event) {
@@ -210,6 +209,12 @@ class PixelInput extends Phaser.GameObjects.Container {
 				this._insertText(event.key, this.selectionStart, this.selectionEnd);
 				break;
 		}
+	}
+
+	_refresh() {
+		this._updateTextPosition();
+		this._updateCursorPositions();
+		this._updateSelectionTint();
 	}
 
 	_insertText(text, start, end, update_history = true) {
