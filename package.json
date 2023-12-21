@@ -1,0 +1,25 @@
+{
+  "name": "phaser3-pixelinput",
+  "version": "1.0.0",
+  "description": "Pixel art style input box for Phaser 3",
+  "main": "js/pixelinput.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bagyoni/phaser3-pixelinput.git"
+  },
+  "keywords": [
+    "phaser"
+  ],
+  "author": "Attila Bágyoni",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bagyoni/phaser3-pixelinput/issues"
+  },
+  "homepage": "https://github.com/bagyoni/phaser3-pixelinput#readme",
+  "dependencies": {
+    "phaser": "^3.70.0"
+  }
+}
