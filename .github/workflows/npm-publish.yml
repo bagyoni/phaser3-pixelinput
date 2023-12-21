@@ -16,7 +16,7 @@ jobs:
           node-version: 16
           registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - run: npm version ${{github.event.inputs.version}}
+      - run: npm --no-git-tag-version version ${{github.event.inputs.version}}
       - run: npx webpack
       - run: npm publish
         env:
