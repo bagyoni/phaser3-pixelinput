@@ -28,15 +28,16 @@ class PixelInput extends Phaser.GameObjects.Container {
 		this._allowed_characters = [...config.allowed_characters];
 		this._width = config.width;
 		this._height = config.height;
-		this._selection_pos = 0; // where the cursor was when we started selecting
-		this._cursor_pos = 0;
-		this._cursor_height = this._height - padding * 2;
 		this._history = [];
 		this._history_index = -1;
 		this._inner_mask = this._createMask();
 		this._box = this._createBox();
 		this._cursor = this._createCursor();
 		this._bmtext = this._createText();
+		this._fixLineHeight();
+		this._selection_pos = 0; // where the cursor was when we started selecting
+		this._cursor_pos = 0;
+		this._cursor_height = this._line_height;
 		scene.input.keyboard.on("keydown", this._onKeyDown, this);
 	}
 
@@ -83,6 +84,16 @@ class PixelInput extends Phaser.GameObjects.Container {
 		this._inner_mask.destroy(fromScene);
 	}
 
+	_fixLineHeight() {
+		// makes sure the y offset of a glyph is always a whole number
+		let font = this._bmtext.fontData;
+		let scale = this._bmtext.fontSize / font.size;
+		let bad_line_height = font.lineHeight * scale;
+		let good_line_height = Math.ceil(bad_line_height);
+		this._bmtext.setLineSpacing((good_line_height - bad_line_height) / scale);
+		this._line_height = good_line_height;
+	}
+
 	_createBox() {
 		let box = this.scene.add
 			.graphics({ x: 0, y: 0 })
@@ -97,7 +108,7 @@ class PixelInput extends Phaser.GameObjects.Container {
 
 	_createCursor() {
 		let cursor = this.scene.add
-			.graphics({ x: padding, y: padding })
+			.graphics({ x: 0, y: 0 })
 			.fillStyle(this._config.selection_color)
 			.fillRect(0, 0, 1, this._cursor_height)
 			.setScrollFactor(0);
@@ -194,6 +205,9 @@ class PixelInput extends Phaser.GameObjects.Container {
 				start = Math.max(0, start);
 				this._insertText("", start, this.selectionEnd);
 				break;
+			case Phaser.Input.Keyboard.KeyCodes.ENTER:
+				this._insertText("\n", this.selectionStart, this.selectionEnd);
+				break;
 			case Phaser.Input.Keyboard.KeyCodes.LEFT:
 				this._cursor_pos = Math.max(0, this._cursor_pos - 1);
 				this._selection_pos = event.shiftKey ? this._selection_pos : this._cursor_pos;
@@ -212,9 +226,9 @@ class PixelInput extends Phaser.GameObjects.Container {
 	}
 
 	_refresh() {
-		this._updateTextPosition();
-		this._updateCursorPositions();
-		this._updateSelectionTint();
+		let characters = this._bmtext.getTextBounds().characters;
+		this._updateTextPosition(characters);
+		this._updateSelection(characters);
 	}
 
 	_insertText(text, start, end, update_history = true) {
@@ -236,44 +250,75 @@ class PixelInput extends Phaser.GameObjects.Container {
 		return [...text].filter(char => this._allowed_characters.includes(char)).join("");
 	}
 
-	_updateTextPosition() {
-		let characters = this._bmtext.getTextBounds().characters;
-		let cursor_x = this._getCursorX(characters, this._cursor_pos);
+	_updateTextPosition(characters) {
+		let cursor_x = this._getCursorCoordinates(characters, this._cursor_pos).x;
 		let left_offset = Math.max(0, padding - cursor_x);
 		let right_offset = Math.max(0, cursor_x - (this._width - padding - 1));
 		this._bmtext.x += left_offset - right_offset;
 	}
 
-	_updateCursorPositions() {
-		let characters = this._bmtext.getTextBounds().characters;
-		let start_x = this._getCursorX(characters, this.selectionStart);
-		let end_x = this._getCursorX(characters, this.selectionEnd);
-		this._cursor.x = start_x;
-		this._cursor
-			.clear()
-			.fillStyle(this._config.selection_color)
-			.fillRect(0, 0, Math.max(1, end_x - start_x + 1), this._cursor_height);
+	_updateSelection(characters) {
+		this._drawMultilineSelection(characters, this.selectionStart, this.selectionEnd);
+		this._updateSelectionTint(characters);
 	}
 
-	_updateSelectionTint() {
+	_drawSingleLineSelection(characters, start, end) {
+		let start_coords = this._getCursorCoordinates(characters, start);
+		let start_x = start_coords.x;
+		let start_y = start_coords.y;
+		let end_x = this._getCursorCoordinates(characters, end).x;
+		this._cursor
+			.fillStyle(this._config.selection_color)
+			.fillRect(start_x, start_y, Math.max(1, end_x - start_x + 1), this._cursor_height);
+	}
+
+	_drawMultilineSelection(characters, start, end) {
+		this._cursor.clear();
+		for (let i = start; i < end; i++) {
+			if (this.text[i] === "\n") {
+				this._drawSingleLineSelection(characters, start, i);
+				start = i + 1;
+			}
+		}
+		this._drawSingleLineSelection(characters, start, end);
+	}
+
+	_updateSelectionTint(characters) {
+		if (characters.length === 0) {
+			return;
+		}
+		let chr_start = this._getCharacterAtIndex(characters, this.selectionStart);
+		let chr_end = this._getCharacterAtIndex(characters, this.selectionEnd);
+		let start = chr_start.i + (chr_start.idx < this.selectionStart ? 1 : 0);
+		let end = chr_end.i + (chr_end.idx < this.selectionEnd ? 1 : 0);
 		this._bmtext
 			.setCharacterTint(0, -1, true, this._config.text_color)
-			.setCharacterTint(
-				this.selectionStart,
-				this.selectionEnd - this.selectionStart,
-				true,
-				this._config.selected_text_color
-			);
+			.setCharacterTint(start, end - start, true, this._config.selected_text_color);
 	}
 
-	_getCursorX(characters, char_index) {
-		if (characters.length > char_index) {
-			return characters[char_index].x + this._bmtext.x - 1;
-		} else if (characters.length > 0) {
-			return characters[characters.length - 1].r + this._bmtext.x;
-		} else {
-			return padding;
+	_getCursorCoordinates(characters, char_index) {
+		if (characters.length === 0) {
+			return { x: padding, y: padding };
 		}
+		let character = this._getCharacterAtIndex(characters, char_index);
+		let x = character.idx === char_index ? character.x : character.r;
+		return { x: x + this._bmtext.x - 1, y: character.t + this._bmtext.y };
+	}
+
+	_getCharacterAtIndex(characters, char_index) {
+		let rightmost = characters
+			.filter(c => c.idx <= char_index)
+			.reduce((rightmost, c) => (rightmost.idx < c.idx ? c : rightmost));
+		if (this.text[char_index - 1] === "\n" || char_index === 0) {
+			let lines = this.text.slice(0, char_index).split("\n").length - 1;
+			return {
+				i: rightmost.i,
+				x: padding - 1,
+				r: padding - 1,
+				t: lines * this._line_height
+			};
+		}
+		return rightmost;
 	}
 }
 
