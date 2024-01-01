@@ -38,6 +38,7 @@ class PixelInput extends Phaser.GameObjects.Container {
 		this._selection_pos = 0; // where the cursor was when we started selecting
 		this._cursor_pos = 0;
 		this._cursor_height = this._line_height;
+		this._refresh();
 		scene.input.keyboard.on("keydown", this._onKeyDown, this);
 	}
 
@@ -109,8 +110,6 @@ class PixelInput extends Phaser.GameObjects.Container {
 	_createCursor() {
 		let cursor = this.scene.add
 			.graphics({ x: 0, y: 0 })
-			.fillStyle(this._config.selection_color)
-			.fillRect(0, 0, 1, this._cursor_height)
 			.setScrollFactor(0);
 		this.add(cursor);
 		cursor.setMask(this._inner_mask);
