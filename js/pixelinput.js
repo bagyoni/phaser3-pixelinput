@@ -335,7 +335,7 @@ class PixelInput extends Phaser.GameObjects.Container {
 			return { x: padding, y: padding };
 		}
 		let character = this._getCharacterAtIndex(characters, char_index);
-		let x = character.idx === char_index ? character.x : character.r;
+		let x = character.idx === char_index ? character.x : character.r + 1;
 		return { x: x + this._bmtext.x - 1, y: character.t + this._bmtext.y };
 	}
 
