@@ -342,11 +342,12 @@ class PixelInput extends Phaser.GameObjects.Container {
 	_getCharacterAtIndex(characters, char_index) {
 		let rightmost = characters
 			.filter(c => c.idx <= char_index)
-			.reduce((rightmost, c) => (rightmost.idx < c.idx ? c : rightmost));
+			.reduce((rightmost, c) => (rightmost.idx < c.idx ? c : rightmost), characters[0]);
 		if (this.text[char_index - 1] === "\n" || char_index === 0) {
 			let lines = this.text.slice(0, char_index).split("\n").length - 1;
 			return {
 				i: rightmost.i,
+				idx: rightmost.idx,
 				x: padding - 1,
 				r: padding - 1,
 				t: lines * this._line_height
