@@ -284,6 +284,11 @@ class PixelInput extends Phaser.GameObjects.Container {
 		let left_offset = Math.max(0, padding - cursor_x);
 		let right_offset = Math.max(0, cursor_x - (this._width - padding - 1));
 		this._bmtext.x += left_offset - right_offset;
+		let cursor_y = this._getCursorCoordinates(characters, this._cursor_pos).y;
+		let cursor_bottom = cursor_y + this._cursor_height;
+		let top_offset = Math.max(0, padding - cursor_y);
+		let bottom_offset = Math.max(0, cursor_bottom - (this._height - padding - 1));
+		this._bmtext.y += top_offset - bottom_offset;
 	}
 
 	_updateSelection(characters) {
