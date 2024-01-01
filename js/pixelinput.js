@@ -216,6 +216,17 @@ class PixelInput extends Phaser.GameObjects.Container {
 				this._cursor_pos = Math.min(this._bmtext.text.length, this._cursor_pos + 1);
 				this._selection_pos = event.shiftKey ? this._selection_pos : this._cursor_pos;
 				break;
+			case Phaser.Input.Keyboard.KeyCodes.UP:
+				this._seekLine(false);
+				this._selection_pos = event.shiftKey ? this._selection_pos : this._cursor_pos;
+				break;
+			case Phaser.Input.Keyboard.KeyCodes.DOWN:
+				this._seekLine(true);
+				this._selection_pos = event.shiftKey ? this._selection_pos : this._cursor_pos;
+				break;
+			case Phaser.Input.Keyboard.KeyCodes.TAB:
+				this._insertText("  ", this.selectionStart, this.selectionEnd);
+				break;
 			default:
 				if (event.key.length !== 1) {
 					break;
@@ -223,6 +234,24 @@ class PixelInput extends Phaser.GameObjects.Container {
 				this._insertText(event.key, this.selectionStart, this.selectionEnd);
 				break;
 		}
+	}
+
+	_seekLine(next_line) {
+		if (!this._allowed_characters.includes("\n")) {
+			return;
+		}
+		let last_eol_index = this.text.substring(0, this._cursor_pos).lastIndexOf("\n");
+		let cursor_column = this._cursor_pos - last_eol_index;
+		let sought_eol_index;
+		if (next_line) {
+			sought_eol_index = this.text.indexOf("\n", this._cursor_pos);
+			sought_eol_index = sought_eol_index < 0 ? this.text.length : sought_eol_index;
+		} else {
+			sought_eol_index = this.text.substring(0, last_eol_index).lastIndexOf("\n");
+		}
+		let next_eol_index = this.text.indexOf("/n", sought_eol_index + 1);
+		next_eol_index = next_eol_index < 0 ? this.text.length : next_eol_index;
+		this._cursor_pos = Math.min(next_eol_index, sought_eol_index + cursor_column);
 	}
 
 	_refresh() {
