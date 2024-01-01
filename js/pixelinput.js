@@ -249,7 +249,7 @@ class PixelInput extends Phaser.GameObjects.Container {
 		} else {
 			sought_eol_index = this.text.substring(0, last_eol_index).lastIndexOf("\n");
 		}
-		let next_eol_index = this.text.indexOf("/n", sought_eol_index + 1);
+		let next_eol_index = this.text.indexOf("\n", sought_eol_index + 1);
 		next_eol_index = next_eol_index < 0 ? this.text.length : next_eol_index;
 		this._cursor_pos = Math.min(next_eol_index, sought_eol_index + cursor_column);
 	}
