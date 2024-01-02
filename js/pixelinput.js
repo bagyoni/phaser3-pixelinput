@@ -324,9 +324,6 @@ class PixelInput extends Phaser.GameObjects.Container {
 	}
 
 	_updateSelectionTint(characters) {
-		if (characters.length === 0) {
-			return;
-		}
 		let chr_start = this._getCharacterAtIndex(characters, this.selectionStart);
 		let chr_end = this._getCharacterAtIndex(characters, this.selectionEnd);
 		let start = chr_start.i + (chr_start.idx < this.selectionStart ? 1 : 0);
@@ -337,18 +334,16 @@ class PixelInput extends Phaser.GameObjects.Container {
 	}
 
 	_getCursorCoordinates(characters, char_index) {
-		if (characters.length === 0) {
-			return { x: padding, y: padding };
-		}
 		let character = this._getCharacterAtIndex(characters, char_index);
 		let x = character.idx === char_index ? character.x : character.r + 1;
 		return { x: x + this._bmtext.x - 1, y: character.t + this._bmtext.y };
 	}
 
 	_getCharacterAtIndex(characters, char_index) {
+		let default_chr = { i: -1, idx: -1 };
 		let rightmost = characters
 			.filter(c => c.idx <= char_index)
-			.reduce((rightmost, c) => (rightmost.idx < c.idx ? c : rightmost), characters[0]);
+			.reduce((rightmost, c) => (rightmost.idx < c.idx ? c : rightmost), default_chr);
 		if (this.text[char_index - 1] === "\n" || char_index === 0) {
 			let lines = this.text.slice(0, char_index).split("\n").length - 1;
 			return {
