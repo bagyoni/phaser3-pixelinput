@@ -348,7 +348,7 @@ class PixelInput extends Phaser.GameObjects.Container {
 				i: rightmost.i,
 				idx: rightmost.idx,
 				x: padding - 1,
-				r: padding - 1,
+				r: padding - 2,
 				t: lines * this._line_height
 			};
 		}
