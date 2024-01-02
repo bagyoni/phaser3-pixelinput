@@ -2,7 +2,6 @@ const Phaser = require("phaser");
 
 const border = 1;
 const padding = 2;
-const clipboard_key = "pixelinput.clipboard";
 
 const default_config = {
 	x: 0,
@@ -39,6 +38,12 @@ class PixelInput extends Phaser.GameObjects.Container {
 		this._cursor_pos = 0;
 		this._cursor_height = this._line_height;
 		this._refresh();
+		this._copy_listener = this._onCopy.bind(this);
+		this._cut_listener = this._onCut.bind(this);
+		this._paste_listener = this._onPaste.bind(this);
+		document.addEventListener("copy", this._copy_listener);
+		document.addEventListener("cut", this._cut_listener);
+		document.addEventListener("paste", this._paste_listener);
 		scene.input.keyboard.on("keydown", this._onKeyDown, this);
 	}
 
@@ -60,19 +65,6 @@ class PixelInput extends Phaser.GameObjects.Container {
 		return Math.max(this._selection_pos, this._cursor_pos);
 	}
 
-	get clipboard() {
-		// not all browsers support reading the OS's clipboard, so we use local storage instead
-		return localStorage.getItem(clipboard_key);
-	}
-
-	set clipboard(value) {
-		if (value.length > 0) {
-			localStorage.setItem(clipboard_key, value);
-			// OTOH, every browser supports writing it, so let's use that at least
-			navigator.clipboard.writeText(value);
-		}
-	}
-
 	clearHistory() {
 		this._history = [];
 		this._history_index = -1;
@@ -80,6 +72,9 @@ class PixelInput extends Phaser.GameObjects.Container {
 
 	destroy(fromScene) {
 		this.scene.input.keyboard.off("keydown", this._onKeyDown, this);
+		document.removeEventListener("copy", this._copy_listener);
+		document.removeEventListener("cut", this._cut_listener);
+		document.removeEventListener("paste", this._paste_listener);
 		super.destroy(fromScene);
 		this._inner_mask.bitmapMask.destroy(fromScene);
 		this._inner_mask.destroy(fromScene);
@@ -168,21 +163,10 @@ class PixelInput extends Phaser.GameObjects.Container {
 		if (!event.ctrlKey) {
 			return false;
 		}
-		let selection = this._bmtext.text.slice(this.selectionStart, this.selectionEnd);
 		switch (event.keyCode) {
 			case Phaser.Input.Keyboard.KeyCodes.A:
 				this._cursor_pos = this._bmtext.text.length;
 				this._selection_pos = 0;
-				break;
-			case Phaser.Input.Keyboard.KeyCodes.C:
-				this.clipboard = selection;
-				break;
-			case Phaser.Input.Keyboard.KeyCodes.V:
-				this._insertText(this.clipboard, this.selectionStart, this.selectionEnd);
-				break;
-			case Phaser.Input.Keyboard.KeyCodes.X:
-				this.clipboard = selection;
-				this._insertText("", this.selectionStart, this.selectionEnd);
 				break;
 			case Phaser.Input.Keyboard.KeyCodes.Y:
 				this._redo();
@@ -233,6 +217,29 @@ class PixelInput extends Phaser.GameObjects.Container {
 				this._insertText(event.key, this.selectionStart, this.selectionEnd);
 				break;
 		}
+	}
+
+	_onCopy(event) {
+		let selection = this._bmtext.text.slice(this.selectionStart, this.selectionEnd);
+		event.clipboardData.setData("text", selection);
+		event.preventDefault();
+		event.stopPropagation();
+	}
+
+	_onCut(event) {
+		this._onCopy(event);
+		this._insertText("", this.selectionStart, this.selectionEnd);
+		this._refresh();
+		event.preventDefault();
+		event.stopPropagation();
+	}
+
+	_onPaste(event) {
+		let text = event.clipboardData.getData("text");
+		this._insertText(text, this.selectionStart, this.selectionEnd);
+		this._refresh();
+		event.preventDefault();
+		event.stopPropagation();
 	}
 
 	_seekLine(next_line) {
