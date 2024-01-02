@@ -16,16 +16,17 @@
 
 		create ()
 		{
-			const config = {
+			let input_config = {
 				x: 25,
-				y: 50,
+				y: 20,
 				font: "atari-classic",
 				font_size: 8,
 				width: 250,
-				height: 12
+				height: 60,
+				allowed_characters: Phaser.GameObjects.RetroFont.TEXT_SET1 + "\n"
 			};
-			let input = this.add.pixelInput(config);
-			input.text = "Hello world!";
+			let input = this.add.pixelInput(input_config);
+			input.text = "This is a multiline input field.\nYou can move the cursor with the arrow keys.";
 		}
 	}
 
