@@ -286,15 +286,24 @@ class PixelInput extends Phaser.GameObjects.Container {
 	}
 
 	_updateTextPosition(characters) {
-		let cursor_x = this._getCursorCoordinates(characters, this._cursor_pos).x;
-		let left_offset = Math.max(0, padding - cursor_x);
-		let right_offset = Math.max(0, cursor_x - (this._width - padding - 1));
-		this._bmtext.x += left_offset - right_offset;
-		let cursor_y = this._getCursorCoordinates(characters, this._cursor_pos).y;
-		let cursor_bottom = cursor_y + this._cursor_height;
-		let top_offset = Math.max(0, padding - cursor_y);
-		let bottom_offset = Math.max(0, cursor_bottom - (this._height - padding));
-		this._bmtext.y += top_offset - bottom_offset;
+		if (this._bmtext.width < this._width - padding * 2) {
+			this._bmtext.x = padding;
+		} else {
+			let cursor_x = this._getCursorCoordinates(characters, this._cursor_pos).x;
+			let left_offset = Math.max(0, padding - cursor_x);
+			let right_offset = Math.max(0, cursor_x - (this._width - padding - 1));
+			this._bmtext.x += left_offset - right_offset;
+		}
+		// BitmapText.height doesn't account for trailing empty lines
+		if (this.text.split("\n").length * this._line_height < this._height - padding * 2) {
+			this._bmtext.y = padding;
+		} else {
+			let cursor_y = this._getCursorCoordinates(characters, this._cursor_pos).y;
+			let cursor_bottom = cursor_y + this._cursor_height;
+			let top_offset = Math.max(0, padding - cursor_y);
+			let bottom_offset = Math.max(0, cursor_bottom - (this._height - padding));
+			this._bmtext.y += top_offset - bottom_offset;
+		}
 	}
 
 	_updateSelection(characters) {
