@@ -96,28 +96,23 @@ class PixelInput extends Phaser.GameObjects.Container {
 			.fillStyle(this._config.border_color)
 			.fillRect(0, 0, this._width, this._height)
 			.fillStyle(this._config.bg_color)
-			.fillRect(border, border, this._width - border * 2, this._height - border * 2)
-			.setScrollFactor(0);
+			.fillRect(border, border, this._width - border * 2, this._height - border * 2);
 		this.add(box);
 		return box;
 	}
 
 	_createCursor() {
-		let cursor = this.scene.add
-			.graphics({ x: 0, y: 0 })
-			.setScrollFactor(0);
+		let cursor = this.scene.add.graphics({ x: 0, y: 0 }).setMask(this._inner_mask);
 		this.add(cursor);
-		cursor.setMask(this._inner_mask);
 		return cursor;
 	}
 
 	_createText() {
 		let text = this.scene.add
 			.bitmapText(padding, padding, this._config.font, "", this._config.font_size)
-			.setScrollFactor(0);
+			.setMask(this._inner_mask);
 		this.add(text);
 		text.tintFill = this._config.text_color;
-		text.setMask(this._inner_mask);
 		return text;
 	}
 
@@ -125,10 +120,9 @@ class PixelInput extends Phaser.GameObjects.Container {
 		let mask_box = this.scene.add
 			.graphics({ x: this.x + padding, y: this.y + padding })
 			.fillStyle(0x000000)
-			.fillRect(0, 0, this._width - padding * 2, this._height)
-			.setScrollFactor(0);
+			.fillRect(0, 0, this._width - padding * 2, this._height - padding * 2);
 		mask_box.visible = false;
-		return this.scene.add.bitmapMask(mask_box);
+		return mask_box.createGeometryMask();
 	}
 
 	_updateHistory() {
