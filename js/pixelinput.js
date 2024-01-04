@@ -16,6 +16,7 @@ const default_config = {
 	selection_color: 0x888888,
 	selected_text_color: 0xffffff,
 	allowed_characters: Phaser.GameObjects.RetroFont.TEXT_SET1,
+	tab: "  ",
 	character_limit: 256,
 	history_limit: 256
 };
@@ -173,6 +174,7 @@ class PixelInput extends Phaser.GameObjects.Container {
 	}
 
 	_handleKeys(event) {
+		let handled = true;
 		switch (event.keyCode) {
 			case Phaser.Input.Keyboard.KeyCodes.BACKSPACE:
 				let start = this.selectionStart;
@@ -202,14 +204,18 @@ class PixelInput extends Phaser.GameObjects.Container {
 				this._selection_pos = event.shiftKey ? this._selection_pos : this._cursor_pos;
 				break;
 			case Phaser.Input.Keyboard.KeyCodes.TAB:
-				this._insertText("  ", this.selectionStart, this.selectionEnd);
+				this._insertText(this._config.tab, this.selectionStart, this.selectionEnd);
 				break;
 			default:
-				if (event.key.length !== 1) {
+				if (!this._allowed_characters.includes(event.key)) {
+					handled = false;
 					break;
 				}
 				this._insertText(event.key, this.selectionStart, this.selectionEnd);
 				break;
+		}
+		if (handled) {
+			event.preventDefault();
 		}
 	}
 
