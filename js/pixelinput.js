@@ -147,7 +147,7 @@ class PixelInput extends Phaser.GameObjects.Container {
 	}
 
 	_onKeyDown(event) {
-		if (!this.visible) {
+		if (!this.visible || !this.active) {
 			return;
 		}
 		this._handleKeystrokes(event) || this._handleKeys(event);
