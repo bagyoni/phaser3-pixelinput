@@ -77,7 +77,7 @@ class PixelInput extends Phaser.GameObjects.Container {
 		document.removeEventListener("cut", this._cut_listener);
 		document.removeEventListener("paste", this._paste_listener);
 		super.destroy(fromScene);
-		this._inner_mask.bitmapMask.destroy(fromScene);
+		this._inner_mask.geometryMask.destroy(fromScene);
 		this._inner_mask.destroy(fromScene);
 	}
 
