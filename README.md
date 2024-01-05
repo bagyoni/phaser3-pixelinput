@@ -14,7 +14,7 @@ Has:
 Doesn't have:
 - mouse interaction
 - resizing
-- pasting text from OS clipboard
+- mobile support
 
 Usage:
 
